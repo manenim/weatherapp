@@ -9,6 +9,7 @@ import { getAuth, signOut } from 'firebase/auth'
 import { doc, getDoc, getFirestore, updateDoc } from 'firebase/firestore'
 import { useNavigation } from '@react-navigation/native'
 import ModalComp from '../components/ModalComp'
+import { OPENWEATHER_API_KEY, ACCUWEATHER_API_KEY } from '@env'
 
 const HomeScreen = () => {
   const [input, setInput] = useState('');
@@ -19,11 +20,12 @@ const HomeScreen = () => {
   const [favorites, setFavorites] = useState(null);
 
    const api = {
-     key: '2b9071f0a4348097adbcab2d7db6bb45',
+     key: OPENWEATHER_API_KEY,
      //accukey
-     key2: 'cknQGXTj8CVK0wECM5UmXeTOEVRDlPdG',
+     key2: ACCUWEATHER_API_KEY,
     base: 'https://api.openweathermap.org/data/2.5/'
   }
+  // console.log(api.key, 'api key')
 
   const app = initializeApp(firebaseConfig)
   const auth = getAuth(app)
@@ -95,7 +97,7 @@ const HomeScreen = () => {
 //  TESTTT
          axios({
       method: 'GET',
-      url: `http://dataservice.accuweather.com/locations/v1/cities/geoposition/search?apikey=fy9AyneNG8HoU1KjcGNtbbUisgHlqhhH&q=${response.data.coord.lat}%2C${response.data.coord.lon}`
+      url: `http://dataservice.accuweather.com/locations/v1/cities/geoposition/search?apikey=${api.key2}&q=${response.data.coord.lat}%2C${response.data.coord.lon}`
       // url: `http://dataservice.accuweather.com/locations/v1/cities/geoposition/search?apikey=${api.key2}&q=${response.data.coord.lat}%2C${response.data.coord.lon}`
     })
     .then((response) => {
@@ -106,7 +108,7 @@ const HomeScreen = () => {
       // Hit API to get 5 days forecast
       axios({
             method: 'GET',
-            url: `http://dataservice.accuweather.com/forecasts/v1/daily/5day/${response.data.Key}?apikey=${api.key2}&metric=true}`
+            url: `http://dataservice.accuweather.com/forecasts/v1/daily/5day/${response.data.Key}?apikey=${api.key2}&metric=true`
       }).then((response) => { 
         setForecasts(response.data.DailyForecasts)
         console.log(response.data.DailyForecasts, 'forecasts SEARCH')
@@ -186,7 +188,7 @@ const HomeScreen = () => {
       // Hit API to get 5 days forecast
       axios({
             method: 'GET',
-            url: `http://dataservice.accuweather.com/forecasts/v1/daily/5day/${response.data.Key}?apikey=fy9AyneNG8HoU1KjcGNtbbUisgHlqhhH`
+            url: `http://dataservice.accuweather.com/forecasts/v1/daily/5day/${response.data.Key}?apikey=fy9AyneNG8HoU1KjcGNtbbUisgHlqhhH&metric=true}`
             // url: `http://dataservice.accuweather.com/forecasts/v1/daily/5day/${response.data.Key}?apikey=${api.key2}`
       }).then((response) => { 
         setForecasts(response.data.DailyForecasts)
@@ -249,12 +251,8 @@ console.log(favorites, 'from favs')
           >
         <Text>Add to favs</Text>
       </TouchableOpacity> */}
-          <TouchableOpacity style={styles.button}
-            onPress={signOutHandler}
-          >
-        <Text>SIGN OUT</Text>
-      </TouchableOpacity>
-      <ModalComp favorites = {favorites} />
+         
+      {/* <ModalComp favorites = {favorites} /> */}
           {/* <TouchableOpacity style={styles.button}
             onPress={() => deleteFromFavourites({id: data.id})}
           >
@@ -269,8 +267,14 @@ console.log(favorites, 'from favs')
             <Text style={styles.tempText2}>
               {data.name}, {data.sys.country}
             </Text>
+          <TouchableOpacity style={styles.button}
+            onPress={signOutHandler}
+          >
+        <Text>SIGN OUT</Text>
+      </TouchableOpacity>
         </View>
-        }
+          }
+          
           
             
       </ImageBackground>
@@ -395,7 +399,9 @@ const styles = StyleSheet.create({
   button: {
     alignItems: 'center',
     backgroundColor: '#DDDDDD',
-    padding: 10,
+    width: '30%',
+    padding: 8,
+    marginTop: 8
   }
   
  
