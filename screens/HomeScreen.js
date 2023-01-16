@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { ImageBackground, Text, StyleSheet, ActivityIndicator, View, Image, TextInput, TouchableOpacity } from 'react-native'
+import { ImageBackground, Text, StyleSheet, ActivityIndicator, View, Image, TextInput, TouchableOpacity, Alert } from 'react-native'
 import axios from 'axios'
 import Forecasts from '../components/Forecasts'
 import * as Location from 'expo-location'
@@ -9,7 +9,7 @@ import { getAuth, signOut } from 'firebase/auth'
 import { doc, getDoc, getFirestore, updateDoc } from 'firebase/firestore'
 import { useNavigation } from '@react-navigation/native'
 import ModalComp from '../components/ModalComp'
-import { OPENWEATHER_API_KEY, ACCUWEATHER_API_KEY } from '@env'
+import { OPENWEATHER_API_KEY, ACCUWEATHER_API_KEY, BASE, BASEURL } from '@env'
 
 const HomeScreen = () => {
   const [input, setInput] = useState('');
@@ -23,7 +23,8 @@ const HomeScreen = () => {
      key: OPENWEATHER_API_KEY,
      //accukey
      key2: ACCUWEATHER_API_KEY,
-    base: 'https://api.openweathermap.org/data/2.5/'
+     base: BASE,
+    baseUrl: BASEURL
   }
   // console.log(api.key, 'api key')
 
@@ -32,8 +33,8 @@ const HomeScreen = () => {
   const db = getFirestore(app);
 
   let user = auth?.currentUser?.uid;
-  console.log(user, 'user')
 
+  
     let navigate = useNavigation()
 
 
@@ -44,7 +45,7 @@ const HomeScreen = () => {
       navigate.navigate('Login')
 }).catch((error) => {
   // An error happened.
-  console.log(error)
+  Alert.alert(error)
 });
   }
 
@@ -58,11 +59,7 @@ const HomeScreen = () => {
     await updateDoc(docRef, {
       favourites: [...docSnap.data().favourites, data]
     });
-
-  
-
     setFavorites(docSnap.data().favourites)
-    console.log('added fv')
   }
 
   // delete from favourites
@@ -82,7 +79,6 @@ const HomeScreen = () => {
 
 
   const fetchDataHandler = useCallback(() => { 
-    console.log(api.key)
     setLoading(true);
     setInput('');
     axios({
@@ -92,23 +88,20 @@ const HomeScreen = () => {
       .then((response) => {
         console.log(response.data.coord.lon, 'from top')
         setData(response.data);
-        setLoading(false);
 
-//  TESTTT
+//  getting weather forecast data on search
          axios({
       method: 'GET',
-      url: `http://dataservice.accuweather.com/locations/v1/cities/geoposition/search?apikey=${api.key2}&q=${response.data.coord.lat}%2C${response.data.coord.lon}`
-      // url: `http://dataservice.accuweather.com/locations/v1/cities/geoposition/search?apikey=${api.key2}&q=${response.data.coord.lat}%2C${response.data.coord.lon}`
+      url: `${api.baseUrl}locations/v1/cities/geoposition/search?apikey=${api.key2}&q=${response.data.coord.lat}%2C${response.data.coord.lon}`
     })
     .then((response) => {
       console.log(response.data.Key, 'forecasts ax')
-      setLoading(true);
 
 
       // Hit API to get 5 days forecast
       axios({
             method: 'GET',
-            url: `http://dataservice.accuweather.com/forecasts/v1/daily/5day/${response.data.Key}?apikey=${api.key2}&metric=true`
+            url: `${api.baseUrl}forecasts/v1/daily/5day/${response.data.Key}?apikey=${api.key2}&metric=true`
       }).then((response) => { 
         setForecasts(response.data.DailyForecasts)
         console.log(response.data.DailyForecasts, 'forecasts SEARCH')
@@ -127,22 +120,6 @@ const HomeScreen = () => {
   }, [api.key, input, api.base]);
 
 
-  let getCurrentWeather = async (lat, lon) => { 
-
-    axios({
-      method: 'GET',
-      url: `${api.base}weather?lat=${location?.coords?.latitude}&lon=${location?.coords?.longitude}&appid=${api.key}`
-    })
-      .then((response) => {
-        setData(response.data);
-        setLoading(false);
-      }).catch((error) => {
-        console.log(error, "setted error");
-      }).finally(() => {
-        setLoading(false);
-      })
-    
-  }
 
 
   useEffect(() => {
@@ -150,14 +127,13 @@ const HomeScreen = () => {
       //Request for permission to get Location
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        console.log('Permission to access location was denied');
+        Alert.alert('Please allow app to access your location')
         return; 
       }
-      console.log('Permission to access location was granted');
       try {
         setLoading(true);
-        let location = await Location.getLastKnownPositionAsync({accuracy: Location.Accuracy.Low, maximumAge: 10000});
-        console.log(location, 'from my location')
+        let location = await Location.getLastKnownPositionAsync({ accuracy: Location.Accuracy.Low, maximumAge: 10000 });
+        
       
       // Fetch current location weather  
       axios({
@@ -168,7 +144,6 @@ const HomeScreen = () => {
         setData(response.data);
         setLoading(false);
       }).catch((error) => {
-        console.log(error, "setted error");
       }).finally(() => {
         setLoading(false);
       })
@@ -177,22 +152,18 @@ const HomeScreen = () => {
       // Hit API to get location key
       axios({
       method: 'GET',
-      url: `http://dataservice.accuweather.com/locations/v1/cities/geoposition/search?apikey=fy9AyneNG8HoU1KjcGNtbbUisgHlqhhH&q=5.018539%2C7.9942635`
-      // url: `http://dataservice.accuweather.com/locations/v1/cities/geoposition/search?apikey=${api.key2}&q=5.018539%2C7.9942635`
+      url: `${api.baseUrl}locations/v1/cities/geoposition/search?apikey=fy9AyneNG8HoU1KjcGNtbbUisgHlqhhH&q=${location?.coords?.latitude}%2C${location?.coords?.longitude}`
     })
     .then((response) => {
-      console.log(response.data.Key, 'forecasts ax')
       setLoading(true);
 
 
       // Hit API to get 5 days forecast
       axios({
             method: 'GET',
-            url: `http://dataservice.accuweather.com/forecasts/v1/daily/5day/${response.data.Key}?apikey=fy9AyneNG8HoU1KjcGNtbbUisgHlqhhH&metric=true}`
-            // url: `http://dataservice.accuweather.com/forecasts/v1/daily/5day/${response.data.Key}?apikey=${api.key2}`
+            url: `${api.baseUrl}forecasts/v1/daily/5day/${response.data.Key}?apikey=fy9AyneNG8HoU1KjcGNtbbUisgHlqhhH&metric=true}`
       }).then((response) => { 
         setForecasts(response.data.DailyForecasts)
-        console.log(response.data.DailyForecasts, 'forecasts ax')
         setLoading(false);
       })
     })
@@ -202,15 +173,17 @@ const HomeScreen = () => {
         setLoading(false);
       })  
       } catch (error) {
-        console.log(error)
+        Alert.alert(error)
       }
       
     })();
 
+    // getting list of saved favorite lovations
       getFavs()
 
   }, [])
 
+// getting list of saved favorite lovations
   const getFavs = async () => {
     const currentUserId = auth?.currentUser?.uid;
       const docRef = doc(db, "users", currentUserId);
@@ -218,21 +191,13 @@ const HomeScreen = () => {
       setFavorites(docSnap.data().favourites)
   }
 
-
-
-  //convert kelvin to celcius
-  const kelvinToCelcius = (temp) => {
-    return Math.round(temp - 273.15);
-  }
-
+  //switching backgrounds
   let bg = data?.weather[0].main === 'Haze' || 'Clouds' ? require(`../assets/bgs/bgcloudy.png`) : data?.weather[0].main === 'Rain' ? require(`../assets/bgs/bgrainy.png`) : require(`../assets/bgs/bgsunny.png`)
   console.log(bg, 'from bg')
 
   let bgColor = data?.weather[0].main === 'Haze' || 'Clouds'  ? '#54717a' : data?.weather[0].main === 'Rain' ? '#34495e' : '#f1c40f'
   
   
-console.log(favorites, 'from favs')
-
   return (
     <View style = {styles.basic}>
         <View style = {styles.top}>
@@ -246,20 +211,10 @@ console.log(favorites, 'from favs')
                 onSubmitEditing={fetchDataHandler}
               />
           </View>
-          {/* <TouchableOpacity style={styles.button}
-            onPress={() => addToFavourites({ "name": data?.name})}
-          >
-        <Text>Add to favs</Text>
-      </TouchableOpacity> */}
-         
-      {/* <ModalComp favorites = {favorites} /> */}
-          {/* <TouchableOpacity style={styles.button}
-            onPress={() => deleteFromFavourites({id: data.id})}
-          >
-        <Text>Remove from favs</Text>
-      </TouchableOpacity> */}
+          
 
-          {loading && <Text>Loading...</Text>}
+
+        {loading && <Text>Loading...</Text>}
 
         {data && <View style={styles.infoView}>
           <Text style={styles.tempText}>{ Math.round(data?.main?.temp)}°C</Text>
@@ -267,13 +222,24 @@ console.log(favorites, 'from favs')
             <Text style={styles.tempText2}>
               {data.name}, {data.sys.country}
             </Text>
-          <TouchableOpacity style={styles.button}
-            onPress={signOutHandler}
-          >
-        <Text>SIGN OUT</Text>
-      </TouchableOpacity>
-        </View>
+              <TouchableOpacity style={styles.button}
+                onPress={signOutHandler}
+                >
+              <Text>SIGN OUT</Text>
+            </TouchableOpacity>
+
+
+            <TouchableOpacity style={styles.button}
+                onPress={() => addToFavourites({ "name": data?.name})}
+              >
+            <Text>Add to favourites</Text>
+            </TouchableOpacity>
+            
+         
+          </View>
+            
           }
+          <ModalComp favorites = {favorites} /> 
           
           
             
@@ -306,8 +272,8 @@ const styles = StyleSheet.create({
   },
    input: {
      height: 40,
-     margin: 12,
-     marginTop: 38,
+     marginHorizontal: 12,
+     marginTop: 12,
     borderWidth: 1,
      padding: 10,
      color: 'black',
@@ -322,7 +288,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 30,
+    marginTop: 0,
   },
   tempText: {
     color: 'white',
@@ -399,10 +365,10 @@ const styles = StyleSheet.create({
   button: {
     alignItems: 'center',
     backgroundColor: '#DDDDDD',
-    width: '30%',
+    width: '40%',
+    borderRadius: 10,
     padding: 8,
     marginTop: 8
   }
-  
  
 });

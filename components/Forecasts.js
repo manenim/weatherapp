@@ -10,6 +10,11 @@ const Forecast = ({ data, color }) => {
   let day = days[new Date(data.Date).getDay()]
   console.log(day, 'from forecasted day')
 
+  //convert kelvin to celcius
+  const kelvinToCelcius = (temp) => {
+    return Math.round(temp - 273.15)
+  }
+
 
   console.log(data.Day.IconPhrase, icon, 'from forecasted iconphrase')
   return (
@@ -21,7 +26,7 @@ const Forecast = ({ data, color }) => {
                   <Image source={require(`../assets/icons/clear.png`)} style={styles.iconImage}/>
                 </View>
                 <View style={styles.temp}>
-                <Text style={styles.forecastText}>{data.Temperature.Maximum.Value}</Text>
+                <Text style={styles.forecastText}>{kelvinToCelcius(data.Temperature.Maximum.Value)}</Text>
                 </View>
           </View>
   )

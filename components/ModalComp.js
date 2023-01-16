@@ -8,6 +8,7 @@ import {
   Text,
   TouchableOpacity,
   Animated,
+  FlatList,
 } from 'react-native';
 
 const ModalPoup = ({visible, children}) => {
@@ -60,18 +61,21 @@ const ModalComp = ({favorites}) => {
             </TouchableOpacity>
           </View>
         </View>
-        <View style={{alignItems: 'center'}}>
-          <Image
-            source={require('../assets/bgs/bgsunny.png')}
-            style={{height: 150, width: 150, marginVertical: 10}}
-          />
+        <View style={{ alignItems: 'center' }}>
+            <FlatList
+        data={favorites}
+        renderItem={({item}) => <Text style={{fontSize: 20, textAlign: 'center'}}>{item.name}</Text>}
+      />
+         
         </View>
 
-        <Text style={{marginVertical: 30, fontSize: 20, textAlign: 'center'}}>
-          Congratulations registration was successful
-        </Text>
       </ModalPoup>
-      <Button title="Open Modal" onPress={() => setVisible(true)} />
+      {/* <Button title="Open Modal" onPress={() => setVisible(true)} /> */}
+      <TouchableOpacity style={styles.button}
+                onPress={() => setVisible(true)}
+              >
+            <Text>View Favourites</Text>
+            </TouchableOpacity>
     </View>
   );
 };
@@ -96,6 +100,15 @@ const styles = StyleSheet.create({
     height: 40,
     alignItems: 'flex-end',
     justifyContent: 'center',
+  },
+  button: {
+    position: 'relative',
+    alignItems: 'center',
+    backgroundColor: '#DDDDDD',
+    width: '40%',
+    borderRadius: 10,
+    padding: 8,
+    marginTop: 8
   },
 });
 
