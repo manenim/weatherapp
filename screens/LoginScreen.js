@@ -24,7 +24,7 @@ const LoginScreen = () => {
             if (user) {
                 navigation.navigate('Home')
             } else {
-            console.log('User is signed out');
+            Alert.alert('User is signed out');
             }
         });
         
@@ -37,7 +37,7 @@ const LoginScreen = () => {
         const user = userCredentials.user;
         console.log('Logged in with:', user.email);
       })
-      .catch(error => alert(error.message))
+      .catch(error => Alert.alert(error.message))
     }
     
 
@@ -107,7 +107,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#0782F9',
         width: '100%',
         padding: 15,
-        borderRadius: 10,
+      borderRadius: 10,
+        marginBottom: 12,
         alignItems: 'center',
     },
     buttonOutline: {

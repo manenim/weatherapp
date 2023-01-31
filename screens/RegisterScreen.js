@@ -26,7 +26,7 @@ const RegisterScreen = () => {
             if (user) {
                 navigation.navigate('Home')
             } else {
-            console.log('User is signed out');
+            Alert.alert('User is signed out');
             }
         });
         
@@ -44,7 +44,7 @@ const RegisterScreen = () => {
           .then(userCredentials => {
               const user = userCredentials.user;
               console.log(user)
-          console.log('Registered with:', user.email);
+          Alert.alert('Registered with:', user.email);
            setDoc(doc(db, "users", user.uid), {
                name: firstName,
                favourites: [],
@@ -53,12 +53,10 @@ const RegisterScreen = () => {
       })
       .catch(error => {
     if (error.code === 'auth/email-already-in-use') {
-        console.log('That email address is already in use!');
         Alert.alert('That email address is already in use!')
     }
 
     if (error.code === 'auth/invalid-email') {
-        console.log('That email address is invalid!');
         Alert.alert('That email address is invalid!')
     }
 
